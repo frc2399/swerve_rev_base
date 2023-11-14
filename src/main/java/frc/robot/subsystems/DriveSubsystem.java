@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -16,8 +17,13 @@ import edu.wpi.first.util.WPIUtilJNI;
 import frc.robot.Constants.DriveConstants;
 import frc.utils.SwerveUtils;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.utils.NavX.AHRS;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.Gyro;
+
+
+
 
 public class DriveSubsystem extends SubsystemBase {
   // Create MAXSwerveModules
@@ -42,7 +48,7 @@ public class DriveSubsystem extends SubsystemBase {
       DriveConstants.kBackRightChassisAngularOffset);
 
   // The gyro sensor
-  private final AHRS ahrs = new AHRS(SPI.Port.kMXP, (byte) 66);
+  // private final AHRS ahrs = new AHRS(SPI.Port.kMXP, (byte) 66);
 
   // Slew rate filter variables for controlling lateral acceleration
   private double m_currentRotation = 0.0;
@@ -56,7 +62,7 @@ public class DriveSubsystem extends SubsystemBase {
   // Odometry class for tracking robot pose
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
       DriveConstants.kDriveKinematics,
-      Rotation2d.fromDegrees(ahrs.getAngle()),
+      Rotation2d.fromDegrees(Gyro.yaw),
       new SwerveModulePosition[] {
           m_frontLeft.getPosition(),
           m_frontRight.getPosition(),
@@ -64,22 +70,27 @@ public class DriveSubsystem extends SubsystemBase {
           m_rearRight.getPosition()
       });
 
+  private LinearFilter derivativeCalculator = LinearFilter.backwardFiniteDifference(1, 2, 0.02);
+  private double pitchRate;
+
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
-    ahrs.reset();
+    
   }
 
   @Override
   public void periodic() {
-    // Update the odometry in the periodic block
-    m_odometry.update(
-        Rotation2d.fromDegrees(ahrs.getAngle()),
-        new SwerveModulePosition[] {
-            m_frontLeft.getPosition(),
-            m_frontRight.getPosition(),
-            m_rearLeft.getPosition(),
-            m_rearRight.getPosition()
-        });
+    // This will get the simulated sensor readings that we set
+    // in the previous article while in simulation, but will use
+    // real values on the robot itself.
+    // m_odometry.update(m_gyro.getRotation2d(),
+    // m_leftEncoder.getDistance(),
+    // m_rightEncoder.getDistance());
+    // m_field.setRobotPose(m_odometry.getPoseMeters());
+    SmartDashboard.putNumber("Gyro angle", Gyro.yaw % 360);
+    SmartDashboard.putNumber("Gyro pitch", Gyro.pitch % 360);
+    SmartDashboard.putNumber("Gyro roll", Gyro.roll % 360);
+    pitchRate = derivativeCalculator.calculate(getGyroPitch());
   }
 
   /**
@@ -98,7 +109,7 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public void resetOdometry(Pose2d pose) {
     m_odometry.resetPosition(
-        Rotation2d.fromDegrees(ahrs.getAngle()),
+        Rotation2d.fromDegrees(Gyro.yaw),
         new SwerveModulePosition[] {
             m_frontLeft.getPosition(),
             m_frontRight.getPosition(),
@@ -178,7 +189,7 @@ public class DriveSubsystem extends SubsystemBase {
 
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
         fieldRelative
-            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(ahrs.getAngle()))
+            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(Gyro.yaw))
             : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -220,10 +231,6 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearRight.resetEncoders();
   }
 
-  /** Zeroes the heading of the robot. */
-  public void zeroHeading() {
-    ahrs.reset();
-  }
 
   /**
    * Returns the heading of the robot.
@@ -231,7 +238,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @return the robot's heading in degrees, from -180 to 180
    */
   public double getHeading() {
-    return Rotation2d.fromDegrees(ahrs.getAngle()).getDegrees();
+    return Rotation2d.fromDegrees(Gyro.yaw).getDegrees();
   }
 
   /**
@@ -239,7 +246,16 @@ public class DriveSubsystem extends SubsystemBase {
    *
    * @return The turn rate of the robot, in degrees per second
    */
-  public double getTurnRate() {
-    return ahrs.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
+  // public double getTurnRate() {
+  //   return ahrs.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
+  // }
+
+  public double getGyroPitch() {
+    return -Gyro.pitch;
+  }
+
+  public double getGyroPitchRate()
+  {
+      return pitchRate;
   }
 }

@@ -37,7 +37,7 @@ public class RobotContainer {
   // The robot's subsystems
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
   private static Gyro m_gyro = new Gyro(); 
-  public boolean fieldOrientedDrive = true;
+  public boolean fieldOrientedDrive = false;
  
 
   // The driver's controller
@@ -54,11 +54,18 @@ public class RobotContainer {
     m_robotDrive.setDefaultCommand(
         // The left stick controls translation of the robot.
         // Turning is controlled by the X axis of the right stick.
+        // new RunCommand(
+        //     () -> m_robotDrive.drive(
+        //         -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
+        //         -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriveDeadband),
+        //         -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
+        //         fieldOrientedDrive, false),
+        //     m_robotDrive));
         new RunCommand(
             () -> m_robotDrive.drive(
                 -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
-                -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriveDeadband),
-                -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
+                0,
+                0,
                 fieldOrientedDrive, false),
             m_robotDrive));
   }

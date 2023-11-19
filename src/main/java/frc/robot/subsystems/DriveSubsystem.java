@@ -87,10 +87,21 @@ public class DriveSubsystem extends SubsystemBase {
     // m_leftEncoder.getDistance(),
     // m_rightEncoder.getDistance());
     // m_field.setRobotPose(m_odometry.getPoseMeters());
+    //Gyro log (spain without the a followed by spain without the s)
     SmartDashboard.putNumber("Gyro angle", Gyro.yaw % 360);
     SmartDashboard.putNumber("Gyro pitch", Gyro.pitch % 360);
     SmartDashboard.putNumber("Gyro roll", Gyro.roll % 360);
     pitchRate = derivativeCalculator.calculate(getGyroPitch());
+    //Drive input log
+    SmartDashboard.putNumber("Right Front Drive Input", m_frontRight.getDriveVolts());
+    SmartDashboard.putNumber("Left Front Drive Input", m_frontLeft.getDriveVolts());
+    SmartDashboard.putNumber("Right Rear Drive Input", m_rearRight.getDriveVolts());
+    SmartDashboard.putNumber("Left Rear Drive Input", m_rearLeft.getDriveVolts());
+    //Drive output log
+    SmartDashboard.putNumber("Right Front Drive Output", m_frontRight.getDriveOutput());
+    SmartDashboard.putNumber("Left Front Drive Output", m_frontLeft.getDriveOutput());
+    SmartDashboard.putNumber("Right Rear Drive Output", m_rearRight.getDriveOutput());
+    SmartDashboard.putNumber("Left Rear Drive Output", m_rearLeft.getDriveOutput());
   }
 
   /**

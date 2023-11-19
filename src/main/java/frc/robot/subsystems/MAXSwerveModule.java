@@ -169,4 +169,8 @@ public class MAXSwerveModule {
   public double getDriveOutput() {
     return m_drivingSparkMax.getAppliedOutput();
   }
+
+  public double getDriveSpeed() {
+    return m_drivingEncoder.getVelocity();
+  }
 }

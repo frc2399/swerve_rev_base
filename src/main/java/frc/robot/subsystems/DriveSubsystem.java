@@ -102,6 +102,11 @@ public class DriveSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Left Front Drive Output", m_frontLeft.getDriveOutput());
     SmartDashboard.putNumber("Right Rear Drive Output", m_rearRight.getDriveOutput());
     SmartDashboard.putNumber("Left Rear Drive Output", m_rearLeft.getDriveOutput());
+    //Drive speed log
+    SmartDashboard.putNumber("Right Front Drive Speed", m_frontRight.getDriveSpeed());
+    SmartDashboard.putNumber("Left Front Drive Speed", m_frontLeft.getDriveSpeed());
+    SmartDashboard.putNumber("Right Rear Drive Speed", m_rearRight.getDriveSpeed());
+    SmartDashboard.putNumber("Left Rear Drive Speed", m_rearLeft.getDriveSpeed());
   }
 
   /**

@@ -87,10 +87,19 @@ public class RobotContainer {
         .whileTrue(new RunCommand(
             () -> m_robotDrive.setX(),
             m_robotDrive));
+    
+    new JoystickButton(m_driverController, XboxController.Button.kY.value)
+        .whileTrue(new RunCommand(
+            () -> m_robotDrive.setZero(),
+            m_robotDrive));
 
     new JoystickButton(m_driverController, XboxController.Button.kA.value).onTrue(
         new InstantCommand(
         () -> fieldOrientedDrive = !fieldOrientedDrive));
+
+    new JoystickButton(m_driverController, XboxController.Button.kB.value)
+        .whileTrue(new RunCommand(
+            () -> m_robotDrive.setMotorSpeeds(0.5), m_robotDrive));    
   }
 
   /**

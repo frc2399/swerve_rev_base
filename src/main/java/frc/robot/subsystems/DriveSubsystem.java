@@ -107,6 +107,11 @@ public class DriveSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Left Front Drive Speed", m_frontLeft.getDriveSpeed());
     SmartDashboard.putNumber("Right Rear Drive Speed", m_rearRight.getDriveSpeed());
     SmartDashboard.putNumber("Left Rear Drive Speed", m_rearLeft.getDriveSpeed());
+    //Turn speed log
+    SmartDashboard.putNumber("Right Front Turn Speed", m_frontRight.getTurnAngle());
+    SmartDashboard.putNumber("Left Front Turn Speed", m_frontLeft.getTurnAngle());
+    SmartDashboard.putNumber("Right Rear Turn Speed", m_rearRight.getTurnAngle());
+    SmartDashboard.putNumber("Left Rear Turn Speed", m_rearLeft.getTurnAngle());
   }
 
   /**
@@ -225,6 +230,13 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
   }
 
+  public void setZero() {
+    m_frontLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
+    m_frontRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
+    m_rearLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
+    m_rearRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
+  }
+
   /**
    * Sets the swerve ModuleStates.
    *
@@ -273,5 +285,13 @@ public class DriveSubsystem extends SubsystemBase {
   public double getGyroPitchRate()
   {
       return pitchRate;
+  }
+
+  public void setMotorSpeeds(double speed)
+  {
+    m_frontLeft.m_drivingSparkMax.set(speed);
+    m_frontRight.m_drivingSparkMax.set(speed);
+    m_rearLeft.m_drivingSparkMax.set(speed);
+    m_rearRight.m_drivingSparkMax.set(speed);
   }
 }

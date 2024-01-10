@@ -51,12 +51,14 @@ public class DriveSubsystem extends SubsystemBase {
   // private final AHRS ahrs = new AHRS(SPI.Port.kMXP, (byte) 66);
 
   // Slew rate filter variables for controlling lateral acceleration
-  private double m_currentRotation = 0.0;
+  private double m_currentRotationRate = 0.0;
   private double m_currentTranslationDir = 0.0;
   private double m_currentTranslationMag = 0.0;
 
+  private double desiredAngle = 0;
+
   private SlewRateLimiter m_magLimiter = new SlewRateLimiter(DriveConstants.kMagnitudeSlewRate);
-  private SlewRateLimiter m_rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
+  private SlewRateLimiter m_rotRateLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
   private double m_prevTime = WPIUtilJNI.now() * 1e-6;
 
   // Odometry class for tracking robot pose
@@ -145,15 +147,20 @@ public class DriveSubsystem extends SubsystemBase {
    *
    * @param xSpeed        Speed of the robot in the x direction (forward).
    * @param ySpeed        Speed of the robot in the y direction (sideways).
-   * @param rot           Angular rate of the robot.
+   * @param rotRate           Angular rate of the robot.
    * @param fieldRelative Whether the provided x and y speeds are relative to the
    *                      field.
    * @param rateLimit     Whether to enable rate limiting for smoother control.
    */
-  public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
+  public void drive(double xSpeed, double ySpeed, double rotRate, boolean fieldRelative, boolean rateLimit) {
     
     double xSpeedCommanded;
     double ySpeedCommanded;
+
+    double currentAngle = Math.toRadians(Gyro.yaw);
+    if(desiredAngle - currentAngle != 0) {
+      rotRate = 4 * (desiredAngle - currentAngle) / (2 * Math.PI);
+    }
 
     if (rateLimit) {
       // Convert XY to polar for rate limiting
@@ -194,24 +201,24 @@ public class DriveSubsystem extends SubsystemBase {
       
       xSpeedCommanded = m_currentTranslationMag * Math.cos(m_currentTranslationDir);
       ySpeedCommanded = m_currentTranslationMag * Math.sin(m_currentTranslationDir);
-      m_currentRotation = m_rotLimiter.calculate(rot);
+      m_currentRotationRate = m_rotRateLimiter.calculate(rotRate);
 
 
     } else {
       xSpeedCommanded = xSpeed;
       ySpeedCommanded = ySpeed;
-      m_currentRotation = rot;
+      m_currentRotationRate = rotRate;
     }
 
     // Convert the commanded speeds into the correct units for the drivetrain
     double xSpeedDelivered = xSpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
     double ySpeedDelivered = ySpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
-    double rotDelivered = m_currentRotation * DriveConstants.kMaxAngularSpeed;
+    double rotRateDelivered = m_currentRotationRate * DriveConstants.kMaxAngularSpeed;
 
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
         fieldRelative
-            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(Gyro.yaw))
-            : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
+            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotRateDelivered, Rotation2d.fromDegrees(Gyro.yaw))
+            : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotRateDelivered));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
     m_frontLeft.setDesiredState(swerveModuleStates[0]);

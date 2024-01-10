@@ -46,6 +46,9 @@ public class MAXSwerveModule {
     m_drivingSparkMax.restoreFactoryDefaults();
     m_turningSparkMax.restoreFactoryDefaults();
 
+    // m_drivingSparkMax.enableVoltageCompensation(12);
+    // m_turningSparkMax.enableVoltageCompensation(12);
+
     // Setup encoders and PID controllers for the driving and turning SPARKS MAX.
     m_drivingEncoder = m_drivingSparkMax.getEncoder();
     m_turningEncoder = m_turningSparkMax.getAbsoluteEncoder(Type.kDutyCycle);

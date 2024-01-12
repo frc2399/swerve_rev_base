@@ -14,6 +14,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.WPIUtilJNI;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.DriveConstants;
 import frc.utils.SwerveUtils;
 import edu.wpi.first.wpilibj.SPI;
@@ -21,6 +22,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.utils.NavX.AHRS;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Gyro;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj.XboxController;
 
 
 
@@ -154,13 +157,30 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public void drive(double xSpeed, double ySpeed, double rotRate, boolean fieldRelative, boolean rateLimit) {
     
+    double newRotRate = 0;
     double xSpeedCommanded;
     double ySpeedCommanded;
-
     double currentAngle = Math.toRadians(Gyro.yaw);
-    if(desiredAngle - currentAngle != 0) {
-      rotRate = 4 * (desiredAngle - currentAngle) / (2 * Math.PI);
+
+    if (currentAngle == 0) {
+      desiredAngle = 0;
     }
+
+    else if(rotRate == 0) {
+      newRotRate = 0;
+      
+      if(Math.abs(desiredAngle - currentAngle) > Math.toRadians(0.1)) {
+        newRotRate = 3 * (desiredAngle - currentAngle) / (2 * Math.PI);
+      }
+    } 
+    else {
+      newRotRate = rotRate;
+      desiredAngle = currentAngle;
+    }
+    SmartDashboard.putNumber("desired angle", desiredAngle);
+    SmartDashboard.putNumber("current angle", currentAngle);
+    SmartDashboard.putNumber("rotRate", rotRate);
+    SmartDashboard.putNumber("rotation rate", newRotRate);
 
     if (rateLimit) {
       // Convert XY to polar for rate limiting
@@ -201,13 +221,13 @@ public class DriveSubsystem extends SubsystemBase {
       
       xSpeedCommanded = m_currentTranslationMag * Math.cos(m_currentTranslationDir);
       ySpeedCommanded = m_currentTranslationMag * Math.sin(m_currentTranslationDir);
-      m_currentRotationRate = m_rotRateLimiter.calculate(rotRate);
+      m_currentRotationRate = m_rotRateLimiter.calculate(newRotRate);
 
 
     } else {
       xSpeedCommanded = xSpeed;
       ySpeedCommanded = ySpeed;
-      m_currentRotationRate = rotRate;
+      m_currentRotationRate = newRotRate;
     }
 
     // Convert the commanded speeds into the correct units for the drivetrain

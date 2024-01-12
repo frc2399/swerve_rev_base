@@ -54,20 +54,20 @@ public class RobotContainer {
     m_robotDrive.setDefaultCommand(
         // The left stick controls translation of the robot.
         // Turning is controlled by the X axis of the right stick.
-        // new RunCommand(
-        //     () -> m_robotDrive.drive(
-        //         -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
-        //         -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriveDeadband),
-        //         -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
-        //         fieldOrientedDrive, false),
-        //     m_robotDrive));
         new RunCommand(
             () -> m_robotDrive.drive(
                 -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
-                0,
-                0,
+                -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
                 fieldOrientedDrive, false),
             m_robotDrive));
+        // new RunCommand(
+        //     () -> m_robotDrive.drive(
+        //         -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
+        //         0,
+        //         0,
+        //         fieldOrientedDrive, false),
+        //     m_robotDrive));
   }
 
 
@@ -98,8 +98,8 @@ public class RobotContainer {
         () -> fieldOrientedDrive = !fieldOrientedDrive));
 
     new JoystickButton(m_driverController, XboxController.Button.kB.value)
-        .whileTrue(new RunCommand(
-            () -> m_robotDrive.setMotorSpeeds(0.5), m_robotDrive));    
+        .onTrue(new InstantCommand(
+            () -> m_gyro.resetYaw(), m_gyro));    
   }
 
   /**
